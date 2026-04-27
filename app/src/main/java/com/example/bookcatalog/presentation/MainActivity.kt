@@ -1,4 +1,4 @@
-package com.example.bookcatalog
+package com.example.bookcatalog.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
