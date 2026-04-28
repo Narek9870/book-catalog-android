@@ -22,4 +22,12 @@ object RepositoryModule {
     ): AuthRepository {
         return AuthRepositoryImpl(httpClient, tokenManager)
     }
+    @Provides
+    @Singleton
+    fun provideBookRepository(
+        httpClient: HttpClient,
+        bookDao: com.example.bookcatalog.data.local.dao.BookDao
+    ): com.example.bookcatalog.domain.repository.BookRepository {
+        return com.example.bookcatalog.data.repository.BookRepositoryImpl(httpClient, bookDao)
+    }
 }

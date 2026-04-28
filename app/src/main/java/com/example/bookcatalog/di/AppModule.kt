@@ -52,4 +52,19 @@ object AppModule {
             }
         }
     }
+    @Provides
+    @Singleton
+    fun provideBookDatabase(@ApplicationContext context: android.content.Context): com.example.bookcatalog.data.local.BookDatabase {
+        return androidx.room.Room.databaseBuilder(
+            context,
+            com.example.bookcatalog.data.local.BookDatabase::class.java,
+            "book_catalog.db"
+        ).build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideBookDao(db: com.example.bookcatalog.data.local.BookDatabase): com.example.bookcatalog.data.local.dao.BookDao {
+        return db.bookDao
+    }
 }
