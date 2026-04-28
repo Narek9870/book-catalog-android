@@ -3,47 +3,65 @@ package com.example.bookcatalog.presentation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.bookcatalog.ui.theme.BookCatalogTheme
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.bookcatalog.data.local.TokenManager
+import com.example.bookcatalog.presentation.auth.AuthScreen
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var tokenManager: TokenManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        // Проверяем, есть ли уже сохраненный токен
+        val isLoggedIn = tokenManager.getToken() != null
+
         setContent {
-            BookCatalogTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+            MaterialTheme {
+                Surface(color = MaterialTheme.colorScheme.background) {
+
+                    val navController = rememberNavController()
+
+                    // NavHost управляет экранами
+                    NavHost(
+                        navController = navController,
+                        startDestination = if (isLoggedIn) "home" else "auth"
+                    ) {
+
+                        // Экран авторизации
+                        composable("auth") {
+                            AuthScreen(onNavigateToHome = {
+                                // Переходим на главный экран и очищаем историю (чтобы кнопка "Назад" не вернула на авторизацию)
+                                navController.navigate("home") {
+                                    popUpTo("auth") { inclusive = true }
+                                }
+                            })
+                        }
+
+                        // ВРЕМЕННЫЙ главный экран (Каталог мы сделаем на следующем шаге)
+                        composable("home") {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text(text = "Добро пожаловать в Каталог Книг!", style = MaterialTheme.typography.headlineMedium)
+                            }
+                        }
+
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    BookCatalogTheme {
-        Greeting("Android")
     }
 }

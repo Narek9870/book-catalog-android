@@ -7,6 +7,7 @@ import com.example.bookcatalog.domain.repository.AuthRepository
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 
 class AuthRepositoryImpl(
@@ -16,7 +17,7 @@ class AuthRepositoryImpl(
 
     override suspend fun login(email: String, password: String): Result<Unit> {
         return try {
-            val response = httpClient.post("login") {
+            val response = httpClient.post("http://10.0.2.2:8080/login") {
                 setBody(UserCredentials(email, password))
             }
             if (response.status.isSuccess()) {
@@ -24,16 +25,17 @@ class AuthRepositoryImpl(
                 tokenManager.saveToken(authResponse.token)
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Неверный логин или пароль"))
+                val errorText = response.bodyAsText()
+                Result.failure(Exception("Ошибка ${response.status.value}: $errorText"))
             }
         } catch (e: Exception) {
-            Result.failure(Exception("Ошибка сети: ${e.localizedMessage}"))
+            Result.failure(Exception("Сбой сети: ${e.localizedMessage}"))
         }
     }
 
     override suspend fun register(email: String, password: String): Result<Unit> {
         return try {
-            val response = httpClient.post("register") {
+            val response = httpClient.post("http://10.0.2.2:8080/register") {
                 setBody(UserCredentials(email, password))
             }
             if (response.status.isSuccess()) {
@@ -41,10 +43,11 @@ class AuthRepositoryImpl(
                 tokenManager.saveToken(authResponse.token)
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Пользователь уже существует или ошибка сервера"))
+                val errorText = response.bodyAsText()
+                Result.failure(Exception("Ошибка ${response.status.value}: $errorText"))
             }
         } catch (e: Exception) {
-            Result.failure(Exception("Ошибка сети: ${e.localizedMessage}"))
+            Result.failure(Exception("Сбой сети: ${e.localizedMessage}"))
         }
     }
 
