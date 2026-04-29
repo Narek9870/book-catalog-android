@@ -20,7 +20,7 @@ class BookViewModel @Inject constructor(
     getBooksUseCase: GetBooksUseCase,
     private val syncBooksUseCase: SyncBooksUseCase,
     private val addBookUseCase: AddBookUseCase,
-    private val deleteBookUseCase: DeleteBookUseCase, // НОВОЕ
+    private val deleteBookUseCase: DeleteBookUseCase,
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
@@ -28,6 +28,9 @@ class BookViewModel @Inject constructor(
 
     var isLoading = mutableStateOf(false)
     var errorMessage = mutableStateOf<String?>(null)
+
+    // НОВОЕ: Переменная для поиска
+    var searchQuery = mutableStateOf("")
 
     init {
         syncBooks()
@@ -58,7 +61,6 @@ class BookViewModel @Inject constructor(
         }
     }
 
-    // НОВОЕ: Функция удаления книги
     fun deleteBook(book: Book) {
         viewModelScope.launch {
             val result = deleteBookUseCase(book.id)
@@ -66,6 +68,11 @@ class BookViewModel @Inject constructor(
                 errorMessage.value = "Не удалось удалить книгу"
             }
         }
+    }
+
+    // НОВОЕ: Обновление текста поиска
+    fun updateSearchQuery(query: String) {
+        searchQuery.value = query
     }
 
     fun logout() {
