@@ -19,9 +19,7 @@ class BookRepositoryImpl(
 ) : BookRepository {
 
     override fun getBooks(): Flow<List<Book>> {
-        return bookDao.getAllBooks().map { entities ->
-            entities.map { it.toDomainModel() }
-        }
+        return bookDao.getAllBooks().map { entities -> entities.map { it.toDomainModel() } }
     }
 
     override suspend fun syncBooks(): Result<Unit> {
@@ -29,13 +27,9 @@ class BookRepositoryImpl(
             val response = httpClient.get("http://10.0.2.2:8080/books")
             if (response.status.isSuccess()) {
                 val remoteBooks: List<BookResponse> = response.body()
-
-                val entities = remoteBooks.map {
-                    BookEntity(it.id, it.title, it.author, it.genre, it.rating, it.review)
-                }
+                val entities = remoteBooks.map { BookEntity(it.id, it.title, it.author, it.genre, it.rating, it.review) }
                 bookDao.clearBooks()
                 bookDao.insertBooks(entities)
-
                 Result.success(Unit)
             } else {
                 Result.failure(Exception("Ошибка загрузки книг: ${response.status}"))
@@ -48,9 +42,7 @@ class BookRepositoryImpl(
     override suspend fun addBook(title: String, author: String, genre: String?, rating: Int, review: String?): Result<Unit> {
         return try {
             val request = BookRequest(title, author, genre, rating, review)
-            val response = httpClient.post("http://10.0.2.2:8080/books") {
-                setBody(request)
-            }
+            val response = httpClient.post("http://10.0.2.2:8080/books") { setBody(request) }
             if (response.status.isSuccess()) {
                 syncBooks()
                 Result.success(Unit)
@@ -62,12 +54,27 @@ class BookRepositoryImpl(
         }
     }
 
-    //Логика удаления
+    // НОВОЕ: Редактирование
+    override suspend fun editBook(id: Int, title: String, author: String, genre: String?, rating: Int, review: String?): Result<Unit> {
+        return try {
+            val request = BookRequest(title, author, genre, rating, review)
+            val response = httpClient.put("http://10.0.2.2:8080/books/$id") { setBody(request) }
+            if (response.status.isSuccess()) {
+                syncBooks() // Скачиваем обновленный список
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Ошибка обновления: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(Exception("Ошибка сети: ${e.localizedMessage}"))
+        }
+    }
+
     override suspend fun deleteBook(id: Int): Result<Unit> {
         return try {
             val response = httpClient.delete("http://10.0.2.2:8080/books/$id")
             if (response.status.isSuccess()) {
-                bookDao.deleteBookById(id) // Удаляем из локальной БД
+                bookDao.deleteBookById(id)
                 Result.success(Unit)
             } else {
                 Result.failure(Exception("Ошибка удаления: ${response.status}"))

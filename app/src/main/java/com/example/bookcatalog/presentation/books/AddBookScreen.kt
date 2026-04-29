@@ -12,19 +12,38 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddBookScreen(
+    bookId: Int?, // null = новая книга, число = старая книга
     onNavigateBack: () -> Unit,
     viewModel: BookViewModel = hiltViewModel()
 ) {
+    // Подписываемся на список книг из ViewModel
+    val books by viewModel.books.collectAsState()
+
+    // Ищем нужную книгу по ID
+    val existingBook = books.find { it.id == bookId }
+
+    // Переменные состояния для полей ввода (изначально пустые)
     var title by remember { mutableStateOf("") }
     var author by remember { mutableStateOf("") }
     var genre by remember { mutableStateOf("") }
     var rating by remember { mutableStateOf("") }
     var review by remember { mutableStateOf("") }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Добавить книгу") })
+    // НОВОЕ: Как только мы находим старую книгу, мгновенно заполняем все поля её данными!
+    LaunchedEffect(existingBook) {
+        if (existingBook != null) {
+            title = existingBook.title
+            author = existingBook.author
+            genre = existingBook.genre ?: ""
+            rating = existingBook.rating.toString()
+            review = existingBook.review ?: ""
         }
+    }
+
+    val screenTitle = if (bookId == null) "Добавить книгу" else "Редактировать книгу"
+
+    Scaffold(
+        topBar = { TopAppBar(title = { Text(screenTitle) }) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -52,14 +71,14 @@ fun AddBookScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { viewModel.addBook(title, author, genre, rating, review, onSuccess = onNavigateBack) },
+                onClick = { viewModel.saveBook(bookId, title, author, genre, rating, review, onSuccess = onNavigateBack) },
                 modifier = Modifier.fillMaxWidth().height(50.dp),
                 enabled = !viewModel.isLoading.value
             ) {
                 if (viewModel.isLoading.value) {
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("Сохранить")
+                    Text(if (bookId == null) "Сохранить" else "Обновить")
                 }
             }
         }

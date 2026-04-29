@@ -2,6 +2,7 @@ package com.example.bookcatalog.presentation.books
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -29,6 +30,7 @@ import kotlin.math.round
 @Composable
 fun BookListScreen(
     onNavigateToAddBook: () -> Unit,
+    onNavigateToEditBook: (Int) -> Unit, // Функция для перехода на экран редактирования
     onLogout: () -> Unit,
     viewModel: BookViewModel = hiltViewModel()
 ) {
@@ -165,7 +167,8 @@ fun BookListScreen(
                                 }
                             }
                         ) {
-                            BookCard(book)
+                            // САМА КАРТОЧКА (Теперь с передачей клика для редактирования!)
+                            BookCard(book = book, onClick = { onNavigateToEditBook(book.id) })
                         }
                     }
                 }
@@ -192,10 +195,13 @@ fun StatisticCard(title: String, value: String, modifier: Modifier = Modifier) {
     }
 }
 
+// Одиночная карточка книги
 @Composable
-fun BookCard(book: Book) {
+fun BookCard(book: Book, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }, // Делаем карточку кликабельной!
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {

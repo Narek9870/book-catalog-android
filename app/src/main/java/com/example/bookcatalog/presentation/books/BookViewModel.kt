@@ -7,6 +7,7 @@ import com.example.bookcatalog.domain.model.Book
 import com.example.bookcatalog.domain.repository.AuthRepository
 import com.example.bookcatalog.domain.usecase.AddBookUseCase
 import com.example.bookcatalog.domain.usecase.DeleteBookUseCase
+import com.example.bookcatalog.domain.usecase.EditBookUseCase
 import com.example.bookcatalog.domain.usecase.GetBooksUseCase
 import com.example.bookcatalog.domain.usecase.SyncBooksUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,6 +21,7 @@ class BookViewModel @Inject constructor(
     getBooksUseCase: GetBooksUseCase,
     private val syncBooksUseCase: SyncBooksUseCase,
     private val addBookUseCase: AddBookUseCase,
+    private val editBookUseCase: EditBookUseCase, // НОВОЕ
     private val deleteBookUseCase: DeleteBookUseCase,
     private val authRepository: AuthRepository
 ) : ViewModel() {
@@ -28,13 +30,9 @@ class BookViewModel @Inject constructor(
 
     var isLoading = mutableStateOf(false)
     var errorMessage = mutableStateOf<String?>(null)
-
-    // НОВОЕ: Переменная для поиска
     var searchQuery = mutableStateOf("")
 
-    init {
-        syncBooks()
-    }
+    init { syncBooks() }
 
     fun syncBooks() {
         viewModelScope.launch {
@@ -44,38 +42,31 @@ class BookViewModel @Inject constructor(
         }
     }
 
-    fun addBook(title: String, author: String, genre: String, rating: String, review: String, onSuccess: () -> Unit) {
+    // НОВОЕ: Универсальная функция (создает или обновляет)
+    fun saveBook(id: Int?, title: String, author: String, genre: String, rating: String, review: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             isLoading.value = true
             errorMessage.value = null
-
             val ratingInt = rating.toIntOrNull() ?: 0
-            val result = addBookUseCase(title, author, genre.takeIf { it.isNotBlank() }, ratingInt, review.takeIf { it.isNotBlank() })
 
-            result.onSuccess {
-                onSuccess()
-            }.onFailure {
-                errorMessage.value = it.message
+            val result = if (id == null) {
+                addBookUseCase(title, author, genre.takeIf { it.isNotBlank() }, ratingInt, review.takeIf { it.isNotBlank() })
+            } else {
+                editBookUseCase(id, title, author, genre.takeIf { it.isNotBlank() }, ratingInt, review.takeIf { it.isNotBlank() })
             }
+
+            result.onSuccess { onSuccess() }.onFailure { errorMessage.value = it.message }
             isLoading.value = false
         }
     }
 
     fun deleteBook(book: Book) {
         viewModelScope.launch {
-            val result = deleteBookUseCase(book.id)
-            result.onFailure {
-                errorMessage.value = "Не удалось удалить книгу"
-            }
+            deleteBookUseCase(book.id).onFailure { errorMessage.value = "Не удалось удалить книгу" }
         }
     }
 
-    // НОВОЕ: Обновление текста поиска
-    fun updateSearchQuery(query: String) {
-        searchQuery.value = query
-    }
-
-    fun logout() {
-        authRepository.logout()
-    }
+    fun getBookById(id: Int): Book? = books.value.find { it.id == id } // НОВОЕ
+    fun updateSearchQuery(query: String) { searchQuery.value = query }
+    fun logout() { authRepository.logout() }
 }
