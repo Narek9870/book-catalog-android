@@ -3,8 +3,10 @@ package com.example.bookcatalog.presentation.books
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.bookcatalog.domain.model.Book
 import com.example.bookcatalog.domain.repository.AuthRepository
 import com.example.bookcatalog.domain.usecase.AddBookUseCase
+import com.example.bookcatalog.domain.usecase.DeleteBookUseCase
 import com.example.bookcatalog.domain.usecase.GetBooksUseCase
 import com.example.bookcatalog.domain.usecase.SyncBooksUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,17 +20,16 @@ class BookViewModel @Inject constructor(
     getBooksUseCase: GetBooksUseCase,
     private val syncBooksUseCase: SyncBooksUseCase,
     private val addBookUseCase: AddBookUseCase,
-    private val authRepository: AuthRepository // для выхода из аккаунта
+    private val deleteBookUseCase: DeleteBookUseCase, // НОВОЕ
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    // Автоматически получаем список книг из локальной БД
     val books = getBooksUseCase().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     var isLoading = mutableStateOf(false)
     var errorMessage = mutableStateOf<String?>(null)
 
     init {
-        // При открытии экрана сразу пытаемся стянуть новые данные с сервера
         syncBooks()
     }
 
@@ -49,11 +50,21 @@ class BookViewModel @Inject constructor(
             val result = addBookUseCase(title, author, genre.takeIf { it.isNotBlank() }, ratingInt, review.takeIf { it.isNotBlank() })
 
             result.onSuccess {
-                onSuccess() // Закрываем экран добавления
+                onSuccess()
             }.onFailure {
                 errorMessage.value = it.message
             }
             isLoading.value = false
+        }
+    }
+
+    // НОВОЕ: Функция удаления книги
+    fun deleteBook(book: Book) {
+        viewModelScope.launch {
+            val result = deleteBookUseCase(book.id)
+            result.onFailure {
+                errorMessage.value = "Не удалось удалить книгу"
+            }
         }
     }
 

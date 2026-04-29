@@ -24,3 +24,8 @@ class AddBookUseCase @Inject constructor(private val repository: BookRepository)
         return repository.addBook(title, author, genre, rating, review)
     }
 }
+
+//UseCase для удаления
+class DeleteBookUseCase @Inject constructor(private val repository: BookRepository) {
+    suspend operator fun invoke(id: Int): Result<Unit> = repository.deleteBook(id)
+}

@@ -19,7 +19,6 @@ class BookRepositoryImpl(
 ) : BookRepository {
 
     override fun getBooks(): Flow<List<Book>> {
-        // Читаем из локальной БД и превращаем в Domain модели
         return bookDao.getAllBooks().map { entities ->
             entities.map { it.toDomainModel() }
         }
@@ -27,17 +26,15 @@ class BookRepositoryImpl(
 
     override suspend fun syncBooks(): Result<Unit> {
         return try {
-            // Идем на сервер за книгами
             val response = httpClient.get("http://10.0.2.2:8080/books")
             if (response.status.isSuccess()) {
                 val remoteBooks: List<BookResponse> = response.body()
 
-                // Превращаем в Entity и сохраняем в Room
                 val entities = remoteBooks.map {
                     BookEntity(it.id, it.title, it.author, it.genre, it.rating, it.review)
                 }
-                bookDao.clearBooks() // Удаляем старые
-                bookDao.insertBooks(entities) // Записываем свежие
+                bookDao.clearBooks()
+                bookDao.insertBooks(entities)
 
                 Result.success(Unit)
             } else {
@@ -55,10 +52,25 @@ class BookRepositoryImpl(
                 setBody(request)
             }
             if (response.status.isSuccess()) {
-                syncBooks() // Сразу после добавления скачиваем обновленный список
+                syncBooks()
                 Result.success(Unit)
             } else {
                 Result.failure(Exception("Ошибка добавления: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(Exception("Ошибка сети: ${e.localizedMessage}"))
+        }
+    }
+
+    //Логика удаления
+    override suspend fun deleteBook(id: Int): Result<Unit> {
+        return try {
+            val response = httpClient.delete("http://10.0.2.2:8080/books/$id")
+            if (response.status.isSuccess()) {
+                bookDao.deleteBookById(id) // Удаляем из локальной БД
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Ошибка удаления: ${response.status}"))
             }
         } catch (e: Exception) {
             Result.failure(Exception("Ошибка сети: ${e.localizedMessage}"))
