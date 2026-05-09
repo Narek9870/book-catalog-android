@@ -83,7 +83,7 @@ fun BookListScreen(
                 .padding(padding)
         ) {
 
-            // --- БЛОК СТАТИСТИКИ ---
+            // БЛОК СТАТИСТИКИ
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -95,7 +95,7 @@ fun BookListScreen(
                 StatisticCard("Ср. Оценка", "$avgRating ⭐", Modifier.weight(1f))
             }
 
-            // --- СТРОКА ПОИСКА ---
+            // СТРОКА ПОИСКА
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { viewModel.updateSearchQuery(it) },
@@ -117,7 +117,7 @@ fun BookListScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // --- СПИСОК КНИГ ИЛИ ПУСТОЙ ЭКРАН ---
+            // СПИСОК КНИГ ИЛИ ПУСТОЙ ЭКРАН
             if (filteredBooks.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -167,7 +167,7 @@ fun BookListScreen(
                                 }
                             }
                         ) {
-                            // САМА КАРТОЧКА (Теперь с передачей клика для редактирования!)
+                            // САМА КАРТОЧКА с передачей клика для редактирования
                             BookCard(book = book, onClick = { onNavigateToEditBook(book.id) })
                         }
                     }
@@ -201,7 +201,7 @@ fun BookCard(book: Book, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }, // Делаем карточку кликабельной!
+            .clickable { onClick() }, // карточка кликабельная
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {

@@ -38,7 +38,7 @@ class BookRepositoryImpl(
             Result.failure(Exception("Ошибка сети: ${e.localizedMessage}"))
         }
     }
-
+    // Добавление
     override suspend fun addBook(title: String, author: String, genre: String?, rating: Int, review: String?): Result<Unit> {
         return try {
             val request = BookRequest(title, author, genre, rating, review)
@@ -54,7 +54,7 @@ class BookRepositoryImpl(
         }
     }
 
-    // НОВОЕ: Редактирование
+    // Редактирование
     override suspend fun editBook(id: Int, title: String, author: String, genre: String?, rating: Int, review: String?): Result<Unit> {
         return try {
             val request = BookRequest(title, author, genre, rating, review)
@@ -69,7 +69,7 @@ class BookRepositoryImpl(
             Result.failure(Exception("Ошибка сети: ${e.localizedMessage}"))
         }
     }
-
+    // Удаление
     override suspend fun deleteBook(id: Int): Result<Unit> {
         return try {
             val response = httpClient.delete("http://10.0.2.2:8080/books/$id")

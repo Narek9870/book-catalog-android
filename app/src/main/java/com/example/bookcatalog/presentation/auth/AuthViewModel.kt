@@ -36,7 +36,7 @@ class AuthViewModel @Inject constructor(
             }
 
             result.onSuccess {
-                isSuccess.value = true // Успех! Можно переходить на следующий экран
+                isSuccess.value = true
             }.onFailure {
                 errorMessage.value = it.message // Показываем ошибку
             }

@@ -21,7 +21,6 @@ class AddBookUseCase @Inject constructor(private val repository: BookRepository)
     }
 }
 
-// НОВОЕ
 class EditBookUseCase @Inject constructor(private val repository: BookRepository) {
     suspend operator fun invoke(id: Int, title: String, author: String, genre: String?, rating: Int, review: String?): Result<Unit> {
         if (title.isBlank() || author.isBlank()) return Result.failure(Exception("Название и автор обязательны"))

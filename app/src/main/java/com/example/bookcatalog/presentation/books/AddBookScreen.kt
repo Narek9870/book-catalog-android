@@ -29,7 +29,7 @@ fun AddBookScreen(
     var rating by remember { mutableStateOf("") }
     var review by remember { mutableStateOf("") }
 
-    // НОВОЕ: Как только мы находим старую книгу, мгновенно заполняем все поля её данными!
+    // Как только находим старую книгу, мгновенно заполняем все поля её данными
     LaunchedEffect(existingBook) {
         if (existingBook != null) {
             title = existingBook.title

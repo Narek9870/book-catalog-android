@@ -40,11 +40,11 @@ object AppModule {
             }
             // Этот блок выполняется перед КАЖДЫМ запросом
             defaultRequest {
-                // Адрес твоего локального сервера на компе для эмулятора:
+                // Адрес локального сервера на компе для эмулятора
                 url("http://10.0.2.2:8080/")
                 contentType(ContentType.Application.Json)
 
-                // Достаем токен. Если он есть - цепляем в заголовок!
+                // Достаем токен. Если он есть - цепляем в заголовок
                 val token = tokenManager.getToken()
                 if (token != null) {
                     header("Authorization", "Bearer $token")

@@ -21,7 +21,7 @@ class BookViewModel @Inject constructor(
     getBooksUseCase: GetBooksUseCase,
     private val syncBooksUseCase: SyncBooksUseCase,
     private val addBookUseCase: AddBookUseCase,
-    private val editBookUseCase: EditBookUseCase, // НОВОЕ
+    private val editBookUseCase: EditBookUseCase,
     private val deleteBookUseCase: DeleteBookUseCase,
     private val authRepository: AuthRepository
 ) : ViewModel() {
@@ -42,7 +42,7 @@ class BookViewModel @Inject constructor(
         }
     }
 
-    // НОВОЕ: Универсальная функция (создает или обновляет)
+    //Универсальная функция (создает или обновляет)
     fun saveBook(id: Int?, title: String, author: String, genre: String, rating: String, review: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             isLoading.value = true
@@ -66,7 +66,7 @@ class BookViewModel @Inject constructor(
         }
     }
 
-    fun getBookById(id: Int): Book? = books.value.find { it.id == id } // НОВОЕ
+    fun getBookById(id: Int): Book? = books.value.find { it.id == id }
     fun updateSearchQuery(query: String) { searchQuery.value = query }
     fun logout() { authRepository.logout() }
 }
