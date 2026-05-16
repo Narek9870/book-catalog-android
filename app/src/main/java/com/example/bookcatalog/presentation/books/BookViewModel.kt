@@ -3,6 +3,7 @@ package com.example.bookcatalog.presentation.books
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.bookcatalog.data.local.SettingsManager
 import com.example.bookcatalog.domain.model.Book
 import com.example.bookcatalog.domain.repository.AuthRepository
 import com.example.bookcatalog.domain.usecase.AddBookUseCase
@@ -11,6 +12,7 @@ import com.example.bookcatalog.domain.usecase.EditBookUseCase
 import com.example.bookcatalog.domain.usecase.GetBooksUseCase
 import com.example.bookcatalog.domain.usecase.SyncBooksUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -23,14 +25,20 @@ class BookViewModel @Inject constructor(
     private val addBookUseCase: AddBookUseCase,
     private val editBookUseCase: EditBookUseCase,
     private val deleteBookUseCase: DeleteBookUseCase,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val settingsManager: SettingsManager //менеджер
 ) : ViewModel() {
 
     val books = getBooksUseCase().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     var isLoading = mutableStateOf(false)
     var errorMessage = mutableStateOf<String?>(null)
+
+    // ПЕРЕМЕННЫЕ ДЛЯ ПОИСКА
     var searchQuery = mutableStateOf("")
+    var searchHistory = mutableStateOf(settingsManager.getSearchHistory())
+    var isSearchLoading = mutableStateOf(false)
+    var isSearchFailed = mutableStateOf(false)
 
     init { syncBooks() }
 
@@ -42,7 +50,32 @@ class BookViewModel @Inject constructor(
         }
     }
 
-    //Универсальная функция (создает или обновляет)
+    // НОВАЯ ФУНКЦИЯ ПОИСКА
+    fun performSearch(query: String) {
+        viewModelScope.launch {
+            isSearchLoading.value = true
+            isSearchFailed.value = false
+            updateSearchQuery(query)
+
+            delay(600) // Задержка, чтобы юзер увидел ProgressBar
+
+            if (query.lowercase() == "ошибка") {
+                // Слово для показа экрана с кнопкой "Обновить"
+                isSearchFailed.value = true
+            } else {
+                settingsManager.saveSearchQuery(query)
+                searchHistory.value = settingsManager.getSearchHistory()
+            }
+
+            isSearchLoading.value = false
+        }
+    }
+
+    fun clearSearchHistory() {
+        settingsManager.clearSearchHistory()
+        searchHistory.value = emptyList()
+    }
+
     fun saveBook(id: Int?, title: String, author: String, genre: String, rating: String, review: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             isLoading.value = true

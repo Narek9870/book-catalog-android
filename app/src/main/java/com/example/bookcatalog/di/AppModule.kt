@@ -1,6 +1,7 @@
 package com.example.bookcatalog.di
 
 import android.content.Context
+import com.example.bookcatalog.data.local.SettingsManager
 import com.example.bookcatalog.data.local.TokenManager
 import dagger.Module
 import dagger.Provides
@@ -66,5 +67,11 @@ object AppModule {
     @Singleton
     fun provideBookDao(db: com.example.bookcatalog.data.local.BookDatabase): com.example.bookcatalog.data.local.dao.BookDao {
         return db.bookDao
+    }
+
+    @Provides
+    @Singleton
+    fun provideSettingsManager(@ApplicationContext context: Context): SettingsManager {
+        return SettingsManager(context)
     }
 }
