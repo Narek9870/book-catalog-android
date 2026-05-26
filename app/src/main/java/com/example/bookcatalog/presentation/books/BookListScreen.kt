@@ -5,7 +5,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
@@ -41,16 +43,15 @@ fun BookListScreen(
 ) {
     val books by viewModel.books.collectAsState()
     val searchQuery = viewModel.searchQuery.value
+    val selectedGenre = viewModel.selectedGenreFilter.value
     var searchActive by remember { mutableStateOf(false) }
 
-    // Фильтруем книги по поиску
-    val filteredBooks = if (searchQuery.isBlank()) {
-        books
-    } else {
-        books.filter {
-            it.title.contains(searchQuery, ignoreCase = true) ||
-                    it.author.contains(searchQuery, ignoreCase = true)
-        }
+    // Фильтруем книги по поиску и жанру
+    val filteredBooks = books.filter { book ->
+        val matchesSearch = book.title.contains(searchQuery, ignoreCase = true) ||
+                book.author.contains(searchQuery, ignoreCase = true)
+        val matchesGenre = if (selectedGenre == "Все жанры") true else book.genre == selectedGenre
+        matchesSearch && matchesGenre
     }
 
     // Считаем статистику
@@ -156,6 +157,29 @@ fun BookListScreen(
                 }
             }
 
+            // ЛЕНТА ФИЛЬТРОВ ПО ЖАНРАМ
+            if (!searchActive) {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    item {
+                        FilterChip(
+                            selected = selectedGenre == "Все жанры",
+                            onClick = { viewModel.updateGenreFilter("Все жанры") },
+                            label = { Text("Все") }
+                        )
+                    }
+                    items(viewModel.availableGenres) { genre ->
+                        FilterChip(
+                            selected = selectedGenre == genre,
+                            onClick = { viewModel.updateGenreFilter(genre) },
+                            label = { Text(genre) }
+                        )
+                    }
+                }
+            }
+
             // ИНДИКАТОР ЗАГРУЗКИ ПОИСКА
             if (viewModel.isSearchLoading.value) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
@@ -179,7 +203,7 @@ fun BookListScreen(
                 // СПИСОК КНИГ ИЛИ ПУСТОЙ ЭКРАН
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
-                        text = if (searchQuery.isBlank()) "Ваш каталог пуст.\nДобавьте первую книгу!" else "По вашему запросу\nничего не найдено.",
+                        text = if (searchQuery.isBlank() && selectedGenre == "Все жанры") "Ваш каталог пуст.\nДобавьте первую книгу!" else "По вашему запросу\nничего не найдено.",
                         textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }

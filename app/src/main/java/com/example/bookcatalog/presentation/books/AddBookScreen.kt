@@ -29,6 +29,8 @@ fun AddBookScreen(
     var rating by remember { mutableStateOf("") }
     var review by remember { mutableStateOf("") }
 
+    var isGenreMenuExpanded by remember { mutableStateOf(false) }
+
     // Как только находим старую книгу, мгновенно заполняем все поля её данными
     LaunchedEffect(existingBook) {
         if (existingBook != null) {
@@ -54,7 +56,37 @@ fun AddBookScreen(
         ) {
             OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Название *") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = author, onValueChange = { author = it }, label = { Text("Автор *") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = genre, onValueChange = { genre = it }, label = { Text("Жанр") }, modifier = Modifier.fillMaxWidth())
+
+            // Выпадающий список жанров вместо обычного поля
+            ExposedDropdownMenuBox(
+                expanded = isGenreMenuExpanded,
+                onExpandedChange = { isGenreMenuExpanded = !isGenreMenuExpanded }
+            ) {
+                OutlinedTextField(
+                    value = genre,
+                    onValueChange = { },
+                    readOnly = true, // Пользователь не может писать сам, только выбирать
+                    label = { Text("Жанр") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isGenreMenuExpanded) },
+                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                    modifier = Modifier.fillMaxWidth().menuAnchor()
+                )
+                ExposedDropdownMenu(
+                    expanded = isGenreMenuExpanded,
+                    onDismissRequest = { isGenreMenuExpanded = false }
+                ) {
+                    viewModel.availableGenres.forEach { selectionOption ->
+                        DropdownMenuItem(
+                            text = { Text(selectionOption) },
+                            onClick = {
+                                genre = selectionOption
+                                isGenreMenuExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
             OutlinedTextField(
                 value = rating,
                 onValueChange = { rating = it },

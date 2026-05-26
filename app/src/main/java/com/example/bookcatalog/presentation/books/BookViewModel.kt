@@ -40,6 +40,10 @@ class BookViewModel @Inject constructor(
     var isSearchLoading = mutableStateOf(false)
     var isSearchFailed = mutableStateOf(false)
 
+    // ФИЛЬТР ПО ЖАНРАМ
+    val availableGenres = listOf("Фантастика", "Детектив", "Роман", "Бизнес", "Психология", "Наука", "Классика", "Фэнтези", "Другое")
+    var selectedGenreFilter = mutableStateOf("Все жанры")
+
     init { syncBooks() }
 
     fun syncBooks() {
@@ -74,6 +78,10 @@ class BookViewModel @Inject constructor(
     fun clearSearchHistory() {
         settingsManager.clearSearchHistory()
         searchHistory.value = emptyList()
+    }
+
+    fun updateGenreFilter(genre: String) {
+        selectedGenreFilter.value = genre
     }
 
     fun saveBook(id: Int?, title: String, author: String, genre: String, rating: String, review: String, onSuccess: () -> Unit) {
