@@ -54,7 +54,7 @@ class BookViewModel @Inject constructor(
         }
     }
 
-    // НОВАЯ ФУНКЦИЯ ПОИСКА
+    // ФУНКЦИЯ ПОИСКА
     fun performSearch(query: String) {
         viewModelScope.launch {
             isSearchLoading.value = true

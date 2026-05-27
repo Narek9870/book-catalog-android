@@ -107,7 +107,7 @@ fun BookListScreen(
             }
 
             // СТРОКА ПОИСКА (умный поиск с историей)
-            // УМНЫЙ ПОИСК С ИСТОРИЕЙ (Требование методички)
+            // УМНЫЙ ПОИСК С ИСТОРИЕЙ
             SearchBar(
                 query = searchQuery,
                 onQueryChange = { viewModel.updateSearchQuery(it) },

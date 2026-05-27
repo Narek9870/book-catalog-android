@@ -24,7 +24,7 @@ class SettingsManager(context: Context) {
         val current = getSearchHistory().toMutableList()
         current.remove(query) // Удаляем дубликат, если такой запрос уже был
         current.add(0, query) // Добавляем новый запрос в самый верх
-        if (current.size > 10) current.removeLast() // Храним строго не больше 10 элементов
+        if (current.size > 10) current.removeAt(current.lastIndex) // Храним строго не больше 10 элементов
         prefs.edit().putString("search_history", current.joinToString("||")).apply()
     }
 
