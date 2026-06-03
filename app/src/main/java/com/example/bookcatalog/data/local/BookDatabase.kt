@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import com.example.bookcatalog.data.local.dao.BookDao
 import com.example.bookcatalog.data.local.entity.BookEntity
 
-@Database(entities = [BookEntity::class], version = 1, exportSchema = false)
+@Database(entities = [BookEntity::class], version = 2, exportSchema = false)
 abstract class BookDatabase : RoomDatabase() {
     abstract val bookDao: BookDao
 }

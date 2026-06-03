@@ -62,8 +62,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    // === НАШИ НОВЫЕ БИБЛИОТЕКИ ===
-
     // 1. Навигация
     implementation(libs.androidx.navigation.compose)
 
@@ -82,4 +80,9 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
+
+    // 5. WorkManager (Фоновые задачи для Offline-Write)
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation("androidx.hilt:hilt-work:1.2.0")
+    ksp("androidx.hilt:hilt-compiler:1.2.0")
 }

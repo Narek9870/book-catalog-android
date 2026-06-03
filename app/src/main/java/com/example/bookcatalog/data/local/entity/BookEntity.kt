@@ -11,7 +11,10 @@ data class BookEntity(
     val author: String,
     val genre: String?,
     val rating: Int,
-    val review: String?
+    val review: String?,
+    // статус синхронизации с сервером
+    val syncAction: String = "NONE"
+
 ) {
     // Функция для превращения локальной книги в ту, что понимает UI
     fun toDomainModel(): Book {

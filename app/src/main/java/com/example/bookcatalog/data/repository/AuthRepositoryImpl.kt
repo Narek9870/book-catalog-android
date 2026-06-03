@@ -17,7 +17,7 @@ class AuthRepositoryImpl(
 
     override suspend fun login(email: String, password: String): Result<Unit> {
         return try {
-            val response = httpClient.post("http://10.0.2.2:8080/login") {
+            val response = httpClient.post("login") {
                 setBody(UserCredentials(email, password))
             }
             if (response.status.isSuccess()) {
@@ -35,7 +35,7 @@ class AuthRepositoryImpl(
 
     override suspend fun register(email: String, password: String): Result<Unit> {
         return try {
-            val response = httpClient.post("http://10.0.2.2:8080/register") {
+            val response = httpClient.post("register") {
                 setBody(UserCredentials(email, password))
             }
             if (response.status.isSuccess()) {

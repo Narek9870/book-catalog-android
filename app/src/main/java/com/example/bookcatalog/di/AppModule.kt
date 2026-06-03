@@ -60,7 +60,9 @@ object AppModule {
             context,
             com.example.bookcatalog.data.local.BookDatabase::class.java,
             "book_catalog.db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides

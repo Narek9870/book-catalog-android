@@ -1,86 +1,75 @@
 package com.example.bookcatalog.data.repository
 
+import android.content.Context
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.example.bookcatalog.data.local.SyncWorker
 import com.example.bookcatalog.data.local.dao.BookDao
 import com.example.bookcatalog.data.local.entity.BookEntity
-import com.example.bookcatalog.data.remote.BookRequest
-import com.example.bookcatalog.data.remote.BookResponse
 import com.example.bookcatalog.domain.model.Book
 import com.example.bookcatalog.domain.repository.BookRepository
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.http.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class BookRepositoryImpl(
-    private val httpClient: HttpClient,
-    private val bookDao: BookDao
+    private val bookDao: BookDao,
+    private val context: Context
 ) : BookRepository {
 
     override fun getBooks(): Flow<List<Book>> {
         return bookDao.getAllBooks().map { entities -> entities.map { it.toDomainModel() } }
     }
 
-    override suspend fun syncBooks(): Result<Unit> {
-        return try {
-            val response = httpClient.get("http://10.0.2.2:8080/books")
-            if (response.status.isSuccess()) {
-                val remoteBooks: List<BookResponse> = response.body()
-                val entities = remoteBooks.map { BookEntity(it.id, it.title, it.author, it.genre, it.rating, it.review) }
-                bookDao.clearBooks()
-                bookDao.insertBooks(entities)
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception("Ошибка загрузки книг: ${response.status}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(Exception("Ошибка сети: ${e.localizedMessage}"))
-        }
-    }
-    // Добавление
-    override suspend fun addBook(title: String, author: String, genre: String?, rating: Int, review: String?): Result<Unit> {
-        return try {
-            val request = BookRequest(title, author, genre, rating, review)
-            val response = httpClient.post("http://10.0.2.2:8080/books") { setBody(request) }
-            if (response.status.isSuccess()) {
-                syncBooks()
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception("Ошибка добавления: ${response.status}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(Exception("Ошибка сети: ${e.localizedMessage}"))
-        }
+    // Запуск фонового работника (УМНЫЙ ВАРИАНТ)
+    private fun enqueueSync() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
+            .setConstraints(constraints)
+            .build()
+
+        // Запускаем уникальную задачу, чтобы не было "клонов" при добавлении книг
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            "UniqueSyncWork",
+            ExistingWorkPolicy.REPLACE,
+            syncRequest
+        )
     }
 
-    // Редактирование
-    override suspend fun editBook(id: Int, title: String, author: String, genre: String?, rating: Int, review: String?): Result<Unit> {
-        return try {
-            val request = BookRequest(title, author, genre, rating, review)
-            val response = httpClient.put("http://10.0.2.2:8080/books/$id") { setBody(request) }
-            if (response.status.isSuccess()) {
-                syncBooks() // Скачиваем обновленный список
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception("Ошибка обновления: ${response.status}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(Exception("Ошибка сети: ${e.localizedMessage}"))
-        }
+    override suspend fun syncBooks(): Result<Unit> {
+        enqueueSync()
+        return Result.success(Unit)
     }
-    // Удаление
+
+    override suspend fun addBook(title: String, author: String, genre: String?, rating: Int, review: String?): Result<Unit> {
+        val tempId = -(System.currentTimeMillis() % 100000).toInt()
+        val entity = BookEntity(tempId, title, author, genre, rating, review, "ADD")
+
+        bookDao.insertBook(entity) // Сохраняем локально
+        enqueueSync() // Пинаем воркера
+        return Result.success(Unit)
+    }
+
+    override suspend fun editBook(id: Int, title: String, author: String, genre: String?, rating: Int, review: String?): Result<Unit> {
+        val entity = BookEntity(id, title, author, genre, rating, review, "EDIT")
+        bookDao.insertBook(entity)
+        enqueueSync()
+        return Result.success(Unit)
+    }
+
     override suspend fun deleteBook(id: Int): Result<Unit> {
-        return try {
-            val response = httpClient.delete("http://10.0.2.2:8080/books/$id")
-            if (response.status.isSuccess()) {
-                bookDao.deleteBookById(id)
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception("Ошибка удаления: ${response.status}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(Exception("Ошибка сети: ${e.localizedMessage}"))
+        val existingBook = bookDao.getBookById(id)
+        if (existingBook != null) {
+            // Копируем книгу, меняя ей статус на "УДАЛИТЬ"
+            val entity = existingBook.copy(syncAction = "DELETE")
+            bookDao.insertBook(entity)
+            enqueueSync()
         }
+        return Result.success(Unit)
     }
 }
