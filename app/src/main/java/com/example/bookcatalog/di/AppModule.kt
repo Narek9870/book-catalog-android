@@ -1,7 +1,6 @@
 package com.example.bookcatalog.di
 
 import android.content.Context
-import com.example.bookcatalog.data.local.SettingsManager
 import com.example.bookcatalog.data.local.TokenManager
 import dagger.Module
 import dagger.Provides
@@ -53,6 +52,7 @@ object AppModule {
             }
         }
     }
+
     @Provides
     @Singleton
     fun provideBookDatabase(@ApplicationContext context: android.content.Context): com.example.bookcatalog.data.local.BookDatabase {
@@ -71,9 +71,10 @@ object AppModule {
         return db.bookDao
     }
 
+    //Выдаем чистый репозиторий настроек
     @Provides
     @Singleton
-    fun provideSettingsManager(@ApplicationContext context: Context): SettingsManager {
-        return SettingsManager(context)
+    fun provideSettingsRepository(@ApplicationContext context: Context): com.example.bookcatalog.domain.repository.SettingsRepository {
+        return com.example.bookcatalog.data.repository.SettingsRepositoryImpl(context)
     }
 }

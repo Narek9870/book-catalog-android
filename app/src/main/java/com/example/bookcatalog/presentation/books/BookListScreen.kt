@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -72,7 +73,7 @@ fun BookListScreen(
                         viewModel.logout()
                         onLogout()
                     }) {
-                        Icon(Icons.Default.ExitToApp, contentDescription = "Выйти")
+                        Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Выйти")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -106,8 +107,7 @@ fun BookListScreen(
                 StatisticCard("Ср. Оценка", "$avgRating ⭐", Modifier.weight(1f))
             }
 
-            // СТРОКА ПОИСКА (умный поиск с историей)
-            // УМНЫЙ ПОИСК С ИСТОРИЕЙ
+            // УМНЫЙ ПОИСК С ИСТОРИЕЙ и СТРОКА ПОИСКА
             SearchBar(
                 query = searchQuery,
                 onQueryChange = { viewModel.updateSearchQuery(it) },
@@ -186,9 +186,7 @@ fun BookListScreen(
             } else {
                 Spacer(modifier = Modifier.height(8.dp))
             }
-
-            // ОТОБРАЖЕНИЕ КОНТЕНТА: ошибки, пустой список или список книг
-            // ПЛЕЙСХОЛДЕРЫ (В случае ошибки поиска или пустого списка)
+            //(В случае ошибки поиска или пустого списка) и ОТОБРАЖЕНИЕ КОНТЕНТА: ошибки, пустой список или список книг
             if (viewModel.isSearchFailed.value) {
                 Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                     Text("Не удалось завершить поиск", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.error)

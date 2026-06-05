@@ -62,26 +62,26 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    // 1. Навигация
+    //Навигация
     implementation(libs.androidx.navigation.compose)
 
-    // 2. Ktor Client
+    //Ktor Client
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.android)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
 
-    // 3. Room (База данных)
+    //Room (База данных)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
-    // 4. Hilt (DI)
+    //Hilt (DI)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
-    // 5. WorkManager (Фоновые задачи для Offline-Write)
+    //WorkManager (Фоновые задачи для Offline-Write)
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("androidx.hilt:hilt-work:1.2.0")
     ksp("androidx.hilt:hilt-compiler:1.2.0")

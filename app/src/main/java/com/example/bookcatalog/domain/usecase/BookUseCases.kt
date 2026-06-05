@@ -2,6 +2,7 @@ package com.example.bookcatalog.domain.usecase
 
 import com.example.bookcatalog.domain.model.Book
 import com.example.bookcatalog.domain.repository.BookRepository
+import com.example.bookcatalog.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -31,4 +32,17 @@ class EditBookUseCase @Inject constructor(private val repository: BookRepository
 
 class DeleteBookUseCase @Inject constructor(private val repository: BookRepository) {
     suspend operator fun invoke(id: Int): Result<Unit> = repository.deleteBook(id)
+}
+
+//Бизнес-логика для истории поиска
+class GetSearchHistoryUseCase @Inject constructor(private val repository: SettingsRepository) {
+    operator fun invoke(): List<String> = repository.getSearchHistory()
+}
+
+class SaveSearchQueryUseCase @Inject constructor(private val repository: SettingsRepository) {
+    operator fun invoke(query: String) = repository.saveSearchQuery(query)
+}
+
+class ClearSearchHistoryUseCase @Inject constructor(private val repository: SettingsRepository) {
+    operator fun invoke() = repository.clearSearchHistory()
 }

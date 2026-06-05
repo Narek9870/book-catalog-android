@@ -24,3 +24,12 @@ class RegisterUseCase @Inject constructor(
         return repository.register(email, password)
     }
 }
+
+//UseCase для выхода из аккаунта
+class LogoutUseCase @Inject constructor(
+    private val repository: AuthRepository
+) {
+    operator fun invoke() {
+        repository.logout()
+    }
+}

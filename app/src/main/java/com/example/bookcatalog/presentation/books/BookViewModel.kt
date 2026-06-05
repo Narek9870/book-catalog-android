@@ -3,13 +3,15 @@ package com.example.bookcatalog.presentation.books
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.bookcatalog.data.local.SettingsManager
 import com.example.bookcatalog.domain.model.Book
-import com.example.bookcatalog.domain.repository.AuthRepository
 import com.example.bookcatalog.domain.usecase.AddBookUseCase
+import com.example.bookcatalog.domain.usecase.ClearSearchHistoryUseCase
 import com.example.bookcatalog.domain.usecase.DeleteBookUseCase
 import com.example.bookcatalog.domain.usecase.EditBookUseCase
 import com.example.bookcatalog.domain.usecase.GetBooksUseCase
+import com.example.bookcatalog.domain.usecase.GetSearchHistoryUseCase
+import com.example.bookcatalog.domain.usecase.LogoutUseCase
+import com.example.bookcatalog.domain.usecase.SaveSearchQueryUseCase
 import com.example.bookcatalog.domain.usecase.SyncBooksUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -25,8 +27,10 @@ class BookViewModel @Inject constructor(
     private val addBookUseCase: AddBookUseCase,
     private val editBookUseCase: EditBookUseCase,
     private val deleteBookUseCase: DeleteBookUseCase,
-    private val authRepository: AuthRepository,
-    private val settingsManager: SettingsManager //менеджер
+    private val logoutUseCase: LogoutUseCase,
+    private val getSearchHistoryUseCase: GetSearchHistoryUseCase,
+    private val saveSearchQueryUseCase: SaveSearchQueryUseCase,
+    private val clearSearchHistoryUseCase: ClearSearchHistoryUseCase
 ) : ViewModel() {
 
     val books = getBooksUseCase().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
@@ -36,7 +40,7 @@ class BookViewModel @Inject constructor(
 
     // ПЕРЕМЕННЫЕ ДЛЯ ПОИСКА
     var searchQuery = mutableStateOf("")
-    var searchHistory = mutableStateOf(settingsManager.getSearchHistory())
+    var searchHistory = mutableStateOf(getSearchHistoryUseCase())
     var isSearchLoading = mutableStateOf(false)
     var isSearchFailed = mutableStateOf(false)
 
@@ -64,11 +68,10 @@ class BookViewModel @Inject constructor(
             delay(600) // Задержка, чтобы юзер увидел ProgressBar
 
             if (query.lowercase() == "ошибка") {
-                // Слово для показа экрана с кнопкой "Обновить"
                 isSearchFailed.value = true
             } else {
-                settingsManager.saveSearchQuery(query)
-                searchHistory.value = settingsManager.getSearchHistory()
+                saveSearchQueryUseCase(query)
+                searchHistory.value = getSearchHistoryUseCase()
             }
 
             isSearchLoading.value = false
@@ -76,7 +79,7 @@ class BookViewModel @Inject constructor(
     }
 
     fun clearSearchHistory() {
-        settingsManager.clearSearchHistory()
+        clearSearchHistoryUseCase()
         searchHistory.value = emptyList()
     }
 
@@ -109,5 +112,6 @@ class BookViewModel @Inject constructor(
 
     fun getBookById(id: Int): Book? = books.value.find { it.id == id }
     fun updateSearchQuery(query: String) { searchQuery.value = query }
-    fun logout() { authRepository.logout() }
+
+    fun logout() { logoutUseCase() }
 }

@@ -51,7 +51,7 @@ class SyncWorker @AssistedInject constructor(
 
             Result.success()
         } catch (e: Exception) {
-            Result.retry() // Если снова нет сети, Worker попробует позже!
+            Result.retry() // Если снова нет сети, worker попробоует снова
         }
     }
 }
